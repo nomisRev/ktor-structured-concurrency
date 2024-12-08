@@ -2,12 +2,9 @@ package io.github.nomisrev
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.resources.Resource
-import io.ktor.server.application.Application
 import io.ktor.server.response.respond
-import io.ktor.server.routing.application
-import io.ktor.server.resources.post
-import io.ktor.server.routing.routing
-import kotlinx.coroutines.delay
+import io.ktor.server.routing.post
+import io.ktor.server.routing.Routing
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -30,18 +27,10 @@ class User {
     )
 }
 
-fun Application.userRoutes(users: UserService) {
-    routing {
-        post<User.Register> { registering ->
-            val id = users.create(ExposedUser(registering.email, registering.age))
-            launch { delay(1000) } // Send email
-            call.respond(HttpStatusCode.OK, id)
-        }
-        post<User.Process> { process ->
-            application.launch {
-                delay(3000) // Process data }
-                call.respond(HttpStatusCode.Accepted)
-            }
-        }
+fun Routing.userRoutes(users: UserService) {
+    post<User.Register> { registering ->
+        call.launch { metrics(registering) }
+        val id = users.insert(ExposedUser(registering.email, registering.age))
+        call.respond(HttpStatusCode.OK, id)
     }
 }

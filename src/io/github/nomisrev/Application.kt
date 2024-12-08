@@ -1,5 +1,3 @@
-@file:JvmName("Application")
-
 package io.github.nomisrev
 
 import io.github.nomisrev.UserService.Users
@@ -9,6 +7,7 @@ import io.ktor.server.application.install
 import io.ktor.server.netty.EngineMain
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.resources.Resources
+import io.ktor.server.routing.routing
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -32,5 +31,9 @@ fun Application.module() {
         SchemaUtils.createMissingTablesAndColumns(Users)
     }
     val service = UserService(database)
-    userRoutes(service)
+    routing {
+        userRoutes(service)
+    }
+    val events = EventService()
+    processing(events, service)
 }
